@@ -1,6 +1,67 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
+import emailjs from "@emailjs/browser";
 
 export default function Contact() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    projectType: "FULL_ECOSYSTEM_BUILD",
+    brief: ""
+  });
+  const [status, setStatus] = useState("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email || !formData.brief) {
+      setStatus("error");
+      setErrorMessage("PLEASE FILL OUT ALL REQUIRED FIELDS.");
+      setTimeout(() => setStatus("idle"), 5000);
+      return;
+    }
+
+    setStatus("loading");
+
+    // EMAILJS CONFIGURATION
+    // -------------------------------------------------------------
+    // Set these in your .env file at the root of your project:
+    // VITE_EMAILJS_SERVICE_ID=your_service_id
+    // VITE_EMAILJS_TEMPLATE_ID=your_template_id
+    // VITE_EMAILJS_PUBLIC_KEY=your_public_key
+    // -------------------------------------------------------------
+    const serviceID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+    emailjs.send(
+      serviceID,
+      templateID,
+      {
+        from_name: formData.name,
+        from_email: formData.email,
+        project_type: formData.projectType,
+        message: formData.brief,
+      },
+      publicKey
+    )
+    .then((response) => {
+      setStatus("success");
+      setFormData({ name: "", email: "", projectType: "FULL_ECOSYSTEM_BUILD", brief: "" });
+      setTimeout(() => setStatus("idle"), 5000);
+    })
+    .catch((error) => {
+      console.error("EmailJS Error:", error);
+      setStatus("error");
+      setErrorMessage("FAILED TO SEND. PLEASE VERIFY CREDENTIALS.");
+      setTimeout(() => setStatus("idle"), 5000);
+    });
+  };
+
   return (
     <section id="contact" className="py-24 border-t border-[#111111]/20 dark:border-white/10 relative overflow-hidden">
       {/* Background large text */}
@@ -55,30 +116,40 @@ export default function Contact() {
             <h3 className="text-xl sm:text-2xl font-bold text-[#111111] dark:text-white mb-4 tracking-tight">START A PROJECT</h3>
             <p className="text-[#111111]/70 dark:text-white/60 text-xs sm:text-sm mb-10">Currently accepting high-impact collaborations.</p>
             
-            <form className="flex flex-col gap-6" onSubmit={(e) => e.preventDefault()}>
+            <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-[#111111]/90 dark:text-white/80 mb-3">NAME</label>
-                <input type="text" placeholder="IDENTIFY YOURSELF" className="w-full bg-white dark:bg-[#111] border border-[#111111]/20 dark:border-white/10 rounded px-5 py-4 text-xs sm:text-sm text-[#111111] dark:text-white placeholder:text-[#111111]/50 dark:placeholder:text-white/30 focus:outline-none focus:border-[#008b9e] dark:focus:border-[#a0e8f5] focus:bg-black/5 dark:focus:bg-white/5 transition-all font-mono" />
+                <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="IDENTIFY YOURSELF" className="w-full bg-white dark:bg-[#111] border border-[#111111]/20 dark:border-white/10 rounded px-5 py-4 text-xs sm:text-sm text-[#111111] dark:text-white placeholder:text-[#111111]/50 dark:placeholder:text-white/30 focus:outline-none focus:border-[#008b9e] dark:focus:border-[#a0e8f5] focus:bg-black/5 dark:focus:bg-white/5 transition-all font-mono" />
               </div>
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-[#111111]/90 dark:text-white/80 mb-3">EMAIL</label>
-                <input type="email" placeholder="WHERE_TO_REACH_YOU" className="w-full bg-white dark:bg-[#111] border border-[#111111]/20 dark:border-white/10 rounded px-5 py-4 text-xs sm:text-sm text-[#111111] dark:text-white placeholder:text-[#111111]/50 dark:placeholder:text-white/30 focus:outline-none focus:border-[#008b9e] dark:focus:border-[#a0e8f5] focus:bg-black/5 dark:focus:bg-white/5 transition-all font-mono" />
+                <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="WHERE_TO_REACH_YOU" className="w-full bg-white dark:bg-[#111] border border-[#111111]/20 dark:border-white/10 rounded px-5 py-4 text-xs sm:text-sm text-[#111111] dark:text-white placeholder:text-[#111111]/50 dark:placeholder:text-white/30 focus:outline-none focus:border-[#008b9e] dark:focus:border-[#a0e8f5] focus:bg-black/5 dark:focus:bg-white/5 transition-all font-mono" />
               </div>
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-[#111111]/90 dark:text-white/80 mb-3">PROJECT TYPE</label>
-                <select className="w-full bg-white dark:bg-[#111] border border-[#111111]/20 dark:border-white/10 rounded px-5 py-4 text-xs sm:text-sm text-[#111111]/60 dark:text-white/50 focus:outline-none focus:border-[#008b9e] dark:focus:border-[#a0e8f5] focus:bg-black/5 dark:focus:bg-white/5 transition-all font-mono appearance-none">
-                  <option>FULL_ECOSYSTEM_BUILD</option>
-                  <option>INTERFACE_DESIGN</option>
-                  <option>SYSTEM_ARCHITECTURE</option>
+                <select name="projectType" value={formData.projectType} onChange={handleChange} className="w-full bg-white dark:bg-[#111] border border-[#111111]/20 dark:border-white/10 rounded px-5 py-4 text-xs sm:text-sm text-[#111111] dark:text-white focus:outline-none focus:border-[#008b9e] dark:focus:border-[#a0e8f5] focus:bg-black/5 dark:focus:bg-white/5 transition-all font-mono appearance-none">
+                  <option value="FULL_ECOSYSTEM_BUILD" className="bg-white dark:bg-[#0a0a0a] text-[#111111] dark:text-white">FULL_ECOSYSTEM_BUILD</option>
+                  <option value="INTERFACE_DESIGN" className="bg-white dark:bg-[#0a0a0a] text-[#111111] dark:text-white">INTERFACE_DESIGN</option>
+                  <option value="SYSTEM_ARCHITECTURE" className="bg-white dark:bg-[#0a0a0a] text-[#111111] dark:text-white">SYSTEM_ARCHITECTURE</option>
                 </select>
               </div>
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-[#111111]/90 dark:text-white/80 mb-3">BRIEF</label>
-                <textarea placeholder="DEFINE THE MISSION" rows="4" className="w-full bg-white dark:bg-[#111] border border-[#111111]/20 dark:border-white/10 rounded px-5 py-4 text-xs sm:text-sm text-[#111111] dark:text-white placeholder:text-[#111111]/50 dark:placeholder:text-white/30 focus:outline-none focus:border-[#008b9e] dark:focus:border-[#a0e8f5] focus:bg-black/5 dark:focus:bg-white/5 transition-all font-mono resize-none"></textarea>
+                <textarea name="brief" value={formData.brief} onChange={handleChange} placeholder="DEFINE THE MISSION" rows="4" className="w-full bg-white dark:bg-[#111] border border-[#111111]/20 dark:border-white/10 rounded px-5 py-4 text-xs sm:text-sm text-[#111111] dark:text-white placeholder:text-[#111111]/50 dark:placeholder:text-white/30 focus:outline-none focus:border-[#008b9e] dark:focus:border-[#a0e8f5] focus:bg-black/5 dark:focus:bg-white/5 transition-all font-mono resize-none"></textarea>
               </div>
-              <button type="button" className="w-full bg-[#008b9e] dark:bg-[#a0e8f5] text-white dark:text-black font-bold uppercase tracking-[0.2em] text-[10px] sm:text-xs py-5 rounded hover:bg-[#111111] dark:hover:bg-white transition-colors mt-4">
-                SEND_MESSAGE
+              <button type="submit" disabled={status === "loading"} className="w-full bg-[#008b9e] dark:bg-[#a0e8f5] text-white dark:text-black font-bold uppercase tracking-[0.2em] text-[10px] sm:text-xs py-5 rounded hover:bg-[#111111] dark:hover:bg-white transition-colors mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
+                {status === "loading" ? "SENDING..." : "SEND_MESSAGE"}
               </button>
+              {status === "success" && (
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[#008b9e] dark:text-[#a0e8f5] text-[10px] sm:text-xs font-mono font-bold uppercase tracking-widest text-center mt-2">
+                  MESSAGE SECURED. INITIATING CONTACT SHORTLY.
+                </motion.p>
+              )}
+              {status === "error" && (
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-500 text-[10px] sm:text-xs font-mono font-bold uppercase tracking-widest text-center mt-2">
+                  {errorMessage}
+                </motion.p>
+              )}
             </form>
             
             <div className="mt-12 pt-8 border-t border-[#111111]/10 dark:border-white/5">
