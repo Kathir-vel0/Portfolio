@@ -9,6 +9,6 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-[#111111] text-white font-sans antialiased;
+    @apply bg-[#f0f0f0] dark:bg-[#111111] text-[#111111] dark:text-white font-sans antialiased transition-colors duration-500;
   }
 }
